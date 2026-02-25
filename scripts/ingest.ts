@@ -6,7 +6,7 @@ async function main() {
   const index = env.PINECONE_INDEX();
   const namespace = env.PINECONE_NAMESPACE();
   console.log(`[ingest] Pinecone index: ${index} | namespace: ${namespace}`);
-  console.log("[ingest] Phase 2: will read data/chunks.json -> embed each chunk -> upsert vectors to Pinecone");
+  console.log("[ingest] Phase 2: will read data/scraped.json -> embed each chunk -> upsert vectors to Pinecone");
 }
 
 main().catch((err) => {
