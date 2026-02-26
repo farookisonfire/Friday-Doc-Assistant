@@ -15,7 +15,7 @@ interface ScrapedPage {
   scrapedAt: string;
 }
 
-async function fetchHtml(url: string, depth = 0): Promise<string> {
+async function fetchHtml(url: string, depth = 0): Promise<{ html: string; finalUrl: string }> {
   if (depth > 5) throw new Error(`Too many redirects fetching ${url}`);
   const res = await fetch(url);
   if (res.status >= 400) throw new Error(`HTTP ${res.status} fetching ${url}`);
@@ -24,13 +24,13 @@ async function fetchHtml(url: string, depth = 0): Promise<string> {
   if (rscRedirect) {
     return fetchHtml(new URL(rscRedirect[1], url).toString(), depth + 1);
   }
-  return html;
+  return { html, finalUrl: res.url };
 }
 
 function extractNavLinks(html: string, baseUrl: string): string[] {
   const $ = cheerio.load(html);
   const seen = new Set<string>();
-  $("nav a[href^='/docs/']").each((_, el) => {
+  $("nav a[href^='/docs']").each((_, el) => {
     const href = $(el).attr("href");
     if (href) seen.add(new URL(href, baseUrl).toString());
   });
@@ -74,7 +74,7 @@ async function main() {
   const baseUrl = env.DOCS_BASE_URL();
   console.log(`[scrape] Starting from ${baseUrl}`);
 
-  const indexHtml = await fetchHtml(baseUrl);
+  const { html: indexHtml } = await fetchHtml(baseUrl);
   const pageUrls = extractNavLinks(indexHtml, baseUrl);
   console.log(`[scrape] Found ${pageUrls.length} pages`);
 
@@ -83,8 +83,8 @@ async function main() {
   for (const url of pageUrls) {
     console.log(`[scrape] Fetching ${url}`);
     try {
-      const html = await fetchHtml(url);
-      pages.push(extractPageContent(html, url));
+      const { html, finalUrl } = await fetchHtml(url);
+      pages.push(extractPageContent(html, finalUrl));
     } catch (err) {
       console.error(`[scrape] Failed ${url}: ${err}`);
     }
