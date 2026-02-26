@@ -1,0 +1,77 @@
+# Friday Rules for Friday Doc Assistant
+
+## Workflow Guidelines
+
+- Work step by step — the user wants to be deeply involved at each phase
+- Explain your approach before making changes on non-trivial tasks
+- One feature branch and one PR per project phase
+- Branch naming format: `phase-[number]/[short-description]`
+- Ask clarifying questions before making assumptions
+- Only commit and push when the user explicitly asks
+
+## Coding Standards
+
+- TypeScript for all source files
+- Do not add explanatory comments or docstrings unless explicitly asked
+- Do not create markdown documentation files unless explicitly asked
+- Follow existing code style and formatting
+- Use `tsx` to run scripts directly (no compile step needed)
+- Environment variables are loaded via `--env-file=.env.local` flag — no `dotenv` package
+
+## Codebase Architecture
+
+- Next.js 16 App Router frontend at project root
+  - `src/app/` — App Router pages and API routes
+  - `src/lib/` — Shared utilities (env validation, OpenAI client, Pinecone client, etc.)
+- `scripts/` — Standalone Node scripts run outside Next.js
+  - `scripts/scrape.ts` — Crawls docs HTML, extracts text, writes to `data/scraped.json`
+  - `scripts/ingest.ts` — Reads `data/scraped.json`, chunks + embeds, upserts to Pinecone
+  - `scripts/eval.ts` — Runs evaluation harness against LangSmith
+- `data/` — Gitignored output directory for scraped chunks
+
+## Pipeline Overview
+
+```
+DOCS_BASE_URL -> scrape.ts -> data/scraped.json -> ingest.ts -> Pinecone
+                                                                    |
+                                                              src/app/api/chat
+                                                                    |
+                                                              OpenAI (RAG) -> UI
+```
+
+## Development Setup
+
+- `npm install`
+- Copy `.env.example` to `.env.local` and fill in all required keys
+- `npm run dev` — starts Next.js dev server
+- `npm run scrape` — crawl and chunk docs
+- `npm run ingest` — embed and upsert to Pinecone
+- `npm run eval` — run evaluation harness
+
+## Environment Variables
+
+| Variable | Purpose |
+|---|---|
+| `DOCS_BASE_URL` | Root URL of the documentation site to scrape |
+| `OPENAI_API_KEY` | OpenAI API access |
+| `PINECONE_API_KEY` | Pinecone vector store access |
+| `PINECONE_INDEX` | Name of the Pinecone index |
+| `PINECONE_NAMESPACE` | Pinecone namespace for vector isolation |
+| `LANGSMITH_API_KEY` | LangSmith tracing and eval |
+
+## Testing and Evaluation
+
+- No unit test framework is configured
+- Evaluation is handled by `scripts/eval.ts` with custom scoring functions
+- LangSmith is used for trace logging and regression tracking
+
+## Linting
+
+- ESLint with `eslint-config-next`
+- Run: `npm run lint`
+
+## Build and Deployment
+
+- Build: `npm run build`
+- Start: `npm start`
+- Target deployment: Vercel
