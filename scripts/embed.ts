@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import type { Chunk } from "../src/lib/types";
 import {
+  cacheKey,
   chunkArray,
   createSemaphore,
   embedBatch,
@@ -34,7 +35,7 @@ async function main() {
   const batchSize = env.EMBED_BATCH_SIZE();
   const concurrency = env.EMBED_CONCURRENCY();
 
-  const missing = chunks.filter((c) => !cache[`${model}:${c.content_hash}`]);
+  const missing = chunks.filter((c) => !cache[cacheKey(model, c)]);
   console.log(`[embed] ${missing.length} chunks need embedding (${chunks.length - missing.length} cached)`);
 
   const batches = chunkArray(chunks, batchSize);

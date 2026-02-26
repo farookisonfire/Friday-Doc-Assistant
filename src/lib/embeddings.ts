@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import { createHash } from "crypto";
 import { getOpenAIClient } from "./openai";
 import { env } from "./env";
 import type { Chunk, EmbeddedChunk } from "./types";
@@ -57,7 +58,9 @@ export function makeEmbedText(chunk: Chunk): string {
 }
 
 export function cacheKey(model: string, chunk: Chunk): string {
-  return `${model}:${chunk.content_hash}`;
+  const embedText = makeEmbedText(chunk);
+  const hash = createHash("sha256").update(embedText).digest("hex");
+  return `${model}:${hash}`;
 }
 
 export function loadCache(filePath: string): EmbeddingsCache {
