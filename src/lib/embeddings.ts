@@ -40,7 +40,10 @@ export async function withRetry<T>(fn: () => Promise<T>, retries = 5): Promise<T
       const status =
         (err as { status?: number })?.status ??
         (err as { response?: { status?: number } })?.response?.status;
-      const retryable = status === 429 || (typeof status === "number" && status >= 500 && status <= 599);
+      const code = (err as { code?: string })?.code;
+      const retryable =
+        typeof status === "number" &&
+        ((status === 429 && code !== "insufficient_quota") || (status >= 500 && status <= 599));
       if (!retryable || attempt > retries) throw err;
       const backoffMs = Math.min(30_000, 500 * Math.pow(2, attempt - 1));
       await new Promise((r) => setTimeout(r, backoffMs));
