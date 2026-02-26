@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as crypto from "crypto";
+import type { Chunk } from "../src/lib/types";
 
 interface Section {
   heading: string;
@@ -12,17 +13,6 @@ interface ScrapedPage {
   title: string;
   sections: Section[];
   scrapedAt: string;
-}
-
-interface Chunk {
-  id: string;
-  text: string;
-  url: string;
-  title: string;
-  headings: string[];
-  chunk_index: number;
-  content_hash: string;
-  created_at: string;
 }
 
 function hashSha256(input: string): string {
@@ -116,8 +106,9 @@ function main() {
     return;
   }
 
-  console.log("\n[ingest] Sample chunk:");
-  console.log(JSON.stringify(chunks[8], null, 2));
+  const outPath = path.join(process.cwd(), "data", "chunks.json");
+  fs.writeFileSync(outPath, JSON.stringify(chunks, null, 2), "utf8");
+  console.log(`[ingest] Wrote ${chunks.length} chunks to ${outPath}`);
 }
 
 try {

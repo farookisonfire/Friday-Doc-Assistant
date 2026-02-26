@@ -42,3 +42,6 @@ next-env.d.ts
 
 # generated data
 /data/scraped.json
+/data/chunks.json
+/data/embedded_chunks.json
+/data/embeddings_cache.json
