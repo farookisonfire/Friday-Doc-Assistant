@@ -40,6 +40,7 @@ function splitSectionText(text: string, maxTokens = 600, overlapTokens = 80): st
   const chunks: string[] = [];
   let current: string[] = [];
   let charCount = 0;
+  let overlapLength = 0;
 
   for (const word of words) {
     if (current.length > 0) charCount += 1;
@@ -59,10 +60,11 @@ function splitSectionText(text: string, maxTokens = 600, overlapTokens = 80): st
       }
       current = overlap;
       charCount = overlapCharCount;
+      overlapLength = overlap.length;
     }
   }
 
-  if (current.length > 0) chunks.push(current.join(" "));
+  if (current.length > overlapLength) chunks.push(current.join(" "));
   return chunks;
 }
 
@@ -115,7 +117,7 @@ function main() {
   }
 
   console.log("\n[ingest] Sample chunk:");
-  console.log(JSON.stringify(chunks[0], null, 2));
+  console.log(JSON.stringify(chunks[8], null, 2));
 }
 
 try {
