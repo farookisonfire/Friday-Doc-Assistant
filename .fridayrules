@@ -61,7 +61,10 @@ DOCS_BASE_URL -> scrape.ts -> data/scraped.json -> ingest.ts -> Pinecone
 
 ## Testing and Evaluation
 
-- No unit test framework is configured
+- Unit testing uses [Vitest](https://vitest.dev/) — run with `npm test`, `npm run test:watch`, or `npm run test:coverage`
+- All library functions in `src/lib/` should have corresponding unit tests in `src/lib/__tests__/`
+- Functions should be written in a way that lends itself to unit testing: pure where possible, dependencies injected or easily mockable, no hidden side effects
+- All external calls (OpenAI, Pinecone) must be mocked in tests — no real API calls
 - Evaluation is handled by `scripts/eval.ts` with custom scoring functions
 - LangSmith is used for trace logging and regression tracking
 
