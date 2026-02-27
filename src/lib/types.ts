@@ -13,3 +13,8 @@ export interface EmbeddedChunk extends Chunk {
   embedding_model: string;
   embedding: number[];
 }
+
+export interface RetrievedChunk extends Chunk {
+  embedding_model: string;
+  score: number;
+}
