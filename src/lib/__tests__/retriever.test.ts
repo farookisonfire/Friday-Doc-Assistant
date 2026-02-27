@@ -107,14 +107,17 @@ describe("querySimilar", () => {
     expect(result!.score).toBe(0);
   });
 
-  it("handles missing metadata gracefully", async () => {
+  it("filters out matches with missing metadata", async () => {
     mockQuery.mockResolvedValue({
       matches: [{ id: "chunk-2", score: 0.5, metadata: undefined }],
     });
-    const [result] = await querySimilar("anything");
+    expect(await querySimilar("anything")).toEqual([]);
+  });
 
-    expect(result!.id).toBe("chunk-2");
-    expect(result!.text).toBeUndefined();
-    expect(result!.url).toBeUndefined();
+  it("filters out matches with incomplete metadata", async () => {
+    mockQuery.mockResolvedValue({
+      matches: [{ id: "chunk-3", score: 0.5, metadata: { text: "only text" } }],
+    });
+    expect(await querySimilar("anything")).toEqual([]);
   });
 });
