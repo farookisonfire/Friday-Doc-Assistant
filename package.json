@@ -10,6 +10,7 @@
     "scrape": "tsx --env-file=.env.local scripts/scrape.ts",
     "ingest": "tsx --env-file=.env.local scripts/ingest.ts",
     "embed": "tsx --env-file=.env.local scripts/embed.ts",
+    "upsert": "tsx --env-file=.env.local scripts/upsert.ts",
     "eval": "tsx --env-file=.env.local scripts/eval.ts"
   },
   "dependencies": {
