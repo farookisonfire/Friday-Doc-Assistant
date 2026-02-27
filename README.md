@@ -46,7 +46,7 @@ Docs site → scrape → chunk → embed → Pinecone
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20.9+
 - A [Pinecone](https://www.pinecone.io/) account with an index created
 - An [OpenAI](https://platform.openai.com/) API key
 - A [LangSmith](https://smith.langchain.com/) API key (optional — for tracing)
