@@ -29,6 +29,11 @@ describe("buildPrompt", () => {
     expect(result.system).toContain(REFUSAL_PHRASE);
   });
 
+  it("does not wrap REFUSAL_PHRASE in quotes in the system prompt", () => {
+    const result = buildPrompt("What is X?", []);
+    expect(result.system).not.toContain(`"${REFUSAL_PHRASE}"`);
+  });
+
   it("includes [src:ID] citation format instruction in the system prompt", () => {
     const result = buildPrompt("What is X?", []);
     expect(result.system).toContain("[src:ID]");
