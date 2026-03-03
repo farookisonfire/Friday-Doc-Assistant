@@ -18,3 +18,9 @@ export interface RetrievedChunk extends Chunk {
   embedding_model: string;
   score: number;
 }
+
+export interface CitationAnalysis {
+  isRefusal: boolean;
+  cited: RetrievedChunk[];
+  hallucinated: string[];
+}

@@ -4,7 +4,7 @@ export const REFUSAL_PHRASE = "I cannot answer from the provided documentation."
 
 const SYSTEM_PROMPT = [
   "You are a documentation assistant. Answer questions using ONLY the documentation snippets provided in the user message.",
-  `If the documentation does not contain enough information to answer, respond with exactly: "${REFUSAL_PHRASE}"`,
+  `If the documentation does not contain enough information to answer, respond with exactly: ${REFUSAL_PHRASE}`,
   "Cite sources inline using the format [src:ID] immediately after the statement they support, where ID is the snippet ID.",
   "Do not fabricate information or cite sources not present in the provided snippets.",
 ].join("\n");
