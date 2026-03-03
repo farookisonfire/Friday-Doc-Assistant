@@ -1,7 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { parseCitations, validateCitations, analyzeCitations } from "../citations";
 import { REFUSAL_PHRASE } from "../prompt";
 import type { RetrievedChunk } from "../types";
+
+vi.mock("langsmith/traceable", () => ({
+  traceable: vi.fn((fn) => fn),
+}));
 
 function makeChunk(overrides: Partial<RetrievedChunk> = {}): RetrievedChunk {
   return {
@@ -87,44 +91,44 @@ describe("validateCitations", () => {
 });
 
 describe("analyzeCitations", () => {
-  it("detects an exact refusal phrase and returns isRefusal true", () => {
-    const result = analyzeCitations(REFUSAL_PHRASE, []);
+  it("detects an exact refusal phrase and returns isRefusal true", async () => {
+    const result = await analyzeCitations(REFUSAL_PHRASE, []);
     expect(result.isRefusal).toBe(true);
     expect(result.cited).toEqual([]);
     expect(result.hallucinated).toEqual([]);
   });
 
-  it("trims whitespace before checking for refusal", () => {
-    const result = analyzeCitations(`  ${REFUSAL_PHRASE}  `, []);
+  it("trims whitespace before checking for refusal", async () => {
+    const result = await analyzeCitations(`  ${REFUSAL_PHRASE}  `, []);
     expect(result.isRefusal).toBe(true);
   });
 
-  it("does not treat a partial refusal phrase as a refusal", () => {
-    const result = analyzeCitations(`${REFUSAL_PHRASE} But here is something.`, []);
+  it("does not treat a partial refusal phrase as a refusal", async () => {
+    const result = await analyzeCitations(`${REFUSAL_PHRASE} But here is something.`, []);
     expect(result.isRefusal).toBe(false);
   });
 
-  it("returns isRefusal false and correct cited chunks on happy path", () => {
+  it("returns isRefusal false and correct cited chunks on happy path", async () => {
     const chunk = makeChunk({ id: "chunk-abc" });
     const response = "Here is the answer. [src:chunk-abc]";
-    const result = analyzeCitations(response, [chunk]);
+    const result = await analyzeCitations(response, [chunk]);
     expect(result.isRefusal).toBe(false);
     expect(result.cited).toEqual([chunk]);
     expect(result.hallucinated).toEqual([]);
   });
 
-  it("flags hallucinated citations not in retrieved chunks", () => {
+  it("flags hallucinated citations not in retrieved chunks", async () => {
     const chunk = makeChunk({ id: "chunk-real" });
     const response = "Real claim. [src:chunk-real] Fake claim. [src:chunk-ghost]";
-    const result = analyzeCitations(response, [chunk]);
+    const result = await analyzeCitations(response, [chunk]);
     expect(result.cited).toHaveLength(1);
     expect(result.hallucinated).toEqual(["chunk-ghost"]);
   });
 
-  it("returns empty cited and hallucinated when response has no citations", () => {
+  it("returns empty cited and hallucinated when response has no citations", async () => {
     const chunk = makeChunk({ id: "chunk-abc" });
     const response = "Here is an answer with no inline citations.";
-    const result = analyzeCitations(response, [chunk]);
+    const result = await analyzeCitations(response, [chunk]);
     expect(result.isRefusal).toBe(false);
     expect(result.cited).toEqual([]);
     expect(result.hallucinated).toEqual([]);

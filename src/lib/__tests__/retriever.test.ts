@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { querySimilar } from "../retriever";
 
+vi.mock("langsmith/traceable", () => ({
+  traceable: vi.fn((fn) => fn),
+}));
+
 const mockQuery = vi.fn();
 const mockEmbeddingsCreate = vi.fn();
 
