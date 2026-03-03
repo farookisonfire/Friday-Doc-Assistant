@@ -4,6 +4,10 @@ vi.mock("openai", () => ({
   default: vi.fn(() => ({ _type: "openai-client" })),
 }));
 
+vi.mock("langsmith/wrappers/openai", () => ({
+  wrapOpenAI: vi.fn((client) => client),
+}));
+
 vi.mock("../env", () => ({
   env: {
     OPENAI_API_KEY: vi.fn().mockReturnValue("sk-test-key"),
@@ -39,5 +43,12 @@ describe("getOpenAIClient", () => {
     getOpenAIClient();
     getOpenAIClient();
     expect(vi.mocked(OpenAI)).toHaveBeenCalledTimes(1);
+  });
+
+  it("wraps the OpenAI client with wrapOpenAI", async () => {
+    const { wrapOpenAI } = await import("langsmith/wrappers/openai");
+    const { getOpenAIClient } = await import("../openai");
+    getOpenAIClient();
+    expect(vi.mocked(wrapOpenAI)).toHaveBeenCalledTimes(1);
   });
 });

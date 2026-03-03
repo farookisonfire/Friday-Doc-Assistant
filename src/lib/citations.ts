@@ -1,3 +1,4 @@
+import { traceable } from "langsmith/traceable";
 import { REFUSAL_PHRASE } from "./prompt";
 import type { RetrievedChunk, CitationAnalysis } from "./types";
 
@@ -36,16 +37,19 @@ export function validateCitations(
   return { valid, hallucinated };
 }
 
-export function analyzeCitations(
-  response: string,
-  chunks: RetrievedChunk[]
-): CitationAnalysis {
-  if (response.trim() === REFUSAL_PHRASE) {
-    return { isRefusal: true, cited: [], hallucinated: [] };
-  }
+export const analyzeCitations = traceable(
+  async function analyzeCitations(
+    response: string,
+    chunks: RetrievedChunk[]
+  ): Promise<CitationAnalysis> {
+    if (response.trim() === REFUSAL_PHRASE) {
+      return { isRefusal: true, cited: [], hallucinated: [] };
+    }
 
-  const ids = parseCitations(response);
-  const { valid, hallucinated } = validateCitations(ids, chunks);
+    const ids = parseCitations(response);
+    const { valid, hallucinated } = validateCitations(ids, chunks);
 
-  return { isRefusal: false, cited: valid, hallucinated };
-}
+    return { isRefusal: false, cited: valid, hallucinated };
+  },
+  { name: "analyzeCitations", run_type: "tool" }
+);
