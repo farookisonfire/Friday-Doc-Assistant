@@ -8,6 +8,9 @@
 - Branch naming format: `phase-[number]/[short-description]`
 - Ask clarifying questions before making assumptions
 - Only commit and push when the user explicitly asks
+- PR titles must follow the format: `Phase [N]: [Short Description]` (e.g. `Phase 4: LangSmith Tracing Integration`)
+- After merging a phase branch, close the corresponding GitHub issue before starting the next phase
+- After merging a phase branch, always create and switch to a new branch before doing any further work
 
 ## Coding Standards
 
