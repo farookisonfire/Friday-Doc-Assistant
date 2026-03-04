@@ -28,6 +28,10 @@ function toRagResult(outputs: Record<string, unknown>): RunRagResult {
   return outputs as unknown as RunRagResult;
 }
 
+function isEmptyResult(r: RunRagResult): boolean {
+  return !r.answer && !r.isRefusal;
+}
+
 async function main() {
   env.LANGSMITH_API_KEY();
 
@@ -52,41 +56,41 @@ async function main() {
       experimentPrefix: "friday-docs-rag",
       maxConcurrency: 2,
       evaluators: [
-        ({ outputs, referenceOutputs }: { outputs: Record<string, unknown>; referenceOutputs?: Record<string, unknown> }) => ({
-          key: "retrieval_recall",
-          score: scoreRetrievalRecall(
-            toRagResult(outputs).chunks ?? [],
-            referenceOutputs?.expectedUrls as string[] | undefined
-          ),
-        }),
-        ({ outputs }: { outputs: Record<string, unknown> }) => ({
-          key: "grounding",
-          score: scoreGrounding(toRagResult(outputs).analysis?.hallucinated ?? []),
-        }),
+        ({ outputs, referenceOutputs }: { outputs: Record<string, unknown>; referenceOutputs?: Record<string, unknown> }) => {
+          const r = toRagResult(outputs);
+          return {
+            key: "retrieval_recall",
+            score: scoreRetrievalRecall(r.chunks ?? [], referenceOutputs?.expectedUrls as string[] | undefined),
+          };
+        },
+        ({ outputs }: { outputs: Record<string, unknown> }) => {
+          const r = toRagResult(outputs);
+          return {
+            key: "grounding",
+            score: isEmptyResult(r) ? 0 : scoreGrounding(r.analysis?.hallucinated ?? []),
+          };
+        },
         ({ outputs }: { outputs: Record<string, unknown> }) => {
           const r = toRagResult(outputs);
           return {
             key: "citation_precision",
-            score: scoreCitationPrecision(
-              r.analysis?.cited?.length ?? 0,
-              r.analysis?.hallucinated?.length ?? 0
-            ),
+            score: isEmptyResult(r) ? 0 : scoreCitationPrecision(r.analysis?.cited?.length ?? 0, r.analysis?.hallucinated?.length ?? 0),
           };
         },
-        ({ outputs, referenceOutputs }: { outputs: Record<string, unknown>; referenceOutputs?: Record<string, unknown> }) => ({
-          key: "refusal_correctness",
-          score: scoreRefusalCorrectness(
-            toRagResult(outputs).isRefusal ?? false,
-            referenceOutputs?.shouldRefuse as boolean | undefined
-          ),
-        }),
-        ({ outputs, referenceOutputs }: { outputs: Record<string, unknown>; referenceOutputs?: Record<string, unknown> }) => ({
-          key: "keyword_coverage",
-          score: scoreKeywordCoverage(
-            toRagResult(outputs).answer ?? "",
-            referenceOutputs?.expectedKeywords as string[] | undefined
-          ),
-        }),
+        ({ outputs, referenceOutputs }: { outputs: Record<string, unknown>; referenceOutputs?: Record<string, unknown> }) => {
+          const r = toRagResult(outputs);
+          return {
+            key: "refusal_correctness",
+            score: isEmptyResult(r) ? 0 : scoreRefusalCorrectness(r.isRefusal ?? false, referenceOutputs?.shouldRefuse as boolean | undefined),
+          };
+        },
+        ({ outputs, referenceOutputs }: { outputs: Record<string, unknown>; referenceOutputs?: Record<string, unknown> }) => {
+          const r = toRagResult(outputs);
+          return {
+            key: "keyword_coverage",
+            score: scoreKeywordCoverage(r.answer ?? "", referenceOutputs?.expectedKeywords as string[] | undefined),
+          };
+        },
       ],
     }
   );
