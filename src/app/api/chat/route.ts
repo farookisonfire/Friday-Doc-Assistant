@@ -1,39 +1,5 @@
 import { NextResponse } from "next/server";
-import { traceable, getCurrentRunTree } from "langsmith/traceable";
-import { querySimilar } from "@/lib/retriever";
-import { buildPrompt } from "@/lib/prompt";
-import { analyzeCitations } from "@/lib/citations";
-import { formatCitations } from "@/lib/formatCitations";
-import { getOpenAIClient } from "@/lib/openai";
-import { env } from "@/lib/env";
-
-const runChat = traceable(
-  async (question: string, topK: number) => {
-    const chunks = await querySimilar(question, topK);
-    const { system, user } = buildPrompt(question, chunks);
-
-    const client = getOpenAIClient();
-    const completion = await client.chat.completions.create({
-      model: env.OPENAI_CHAT_MODEL(),
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-    });
-
-    const answer = completion.choices[0]?.message?.content?.trim();
-    if (!answer) {
-      return NextResponse.json({ error: "Model returned no answer" }, { status: 502 });
-    }
-
-    const analysis = await analyzeCitations(answer, chunks);
-    const formatted = formatCitations(answer, analysis);
-    const traceId = getCurrentRunTree().trace_id;
-
-    return NextResponse.json({ ...formatted, traceId, isRefusal: analysis.isRefusal });
-  },
-  { name: "runChat", run_type: "chain" }
-);
+import { runRag } from "@/lib/runRag";
 
 export async function POST(req: Request) {
   let body: Record<string, unknown>;
@@ -57,7 +23,16 @@ export async function POST(req: Request) {
   const topK = Math.min(8, Math.max(1, Math.round(rawTopK)));
 
   try {
-    return await runChat(question, topK);
+    const result = await runRag(question, topK);
+    if (!result.answer && !result.isRefusal) {
+      return NextResponse.json({ error: "Model returned no answer" }, { status: 502 });
+    }
+    return NextResponse.json({
+      answer: result.answer,
+      sources: result.sources,
+      isRefusal: result.isRefusal,
+      traceId: result.traceId,
+    });
   } catch {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
