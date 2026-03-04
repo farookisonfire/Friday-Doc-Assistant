@@ -12,7 +12,7 @@ The system is designed to answer questions using only retrieved documentation co
 
 - Answer questions using **only** Friday docs context
 - Provide **verifiable citations** — inline footnotes with a Sources list per response
-- Make every run **observable and reproducible** via LangSmith and a custom trace logger
+- Make every run **observable and reproducible** via LangSmith
 - Support an **evaluation harness** to measure and track retrieval quality and grounding over time
 - Lay a foundation for **tool-augmented workflows**
 
@@ -117,13 +117,24 @@ Sources:
 **Deliverables**: `src/lib/retrieval.ts`, `src/lib/prompt.ts`, citation formatting
 **Acceptance criteria**: Queries return grounded answers with ≥1 citation for factual claims; model refuses or flags when context is insufficient
 
-### Phase 4 — Custom Trace Logger (`#4`)
+### Phase 4 — LangSmith Tracing Integration (`#4`)
 **Deliverables**: `src/lib/tracer.ts`, LangSmith integration, `trace_id` on every request
 **Acceptance criteria**: Every request has a `trace_id`; retrieval inputs/outputs, prompt, token usage, and scores are logged; traces visible in LangSmith
 
 ### Phase 5 — API Route + Chat UI (`#5`)
-**Deliverables**: `src/app/api/chat/route.ts`, chat UI
-**Acceptance criteria**: User can ask a question and see a grounded response with citations; errors surface actionable messages
+**Deliverables**: `src/app/api/chat/route.ts`, `src/lib/formatCitations.ts`, chat UI in `src/app/page.tsx`
+**Acceptance criteria**: User can ask a question and see a grounded response with numbered citations and a clickable Sources list; errors surface actionable messages; every response includes a `traceId`
+
+**API contract**:
+- `POST /api/chat`
+- Request: `{ question: string, topK?: number }`
+- Response: `{ traceId: string, answer: string, sources: { index: number, title: string, url: string, snippet: string }[], isRefusal: boolean }`
+- Each request creates a root LangSmith run (run_type `"chain"`); retriever and tool spans nest under it; `traceId` is returned in the response body
+
+**Design decisions**:
+- Single JSON response (no streaming) — `analyzeCitations` requires the full response text before it can run
+- Single-turn Q&A — each question is independent; no conversation history is sent to the LLM
+- Model is env-configured via `OPENAI_CHAT_MODEL` (default: `gpt-4o-mini`)
 
 ### Phase 6 — Evaluation Harness (`#6`)
 **Deliverables**: `scripts/eval.ts`, fixed question dataset, scoring functions
@@ -148,6 +159,7 @@ npm run dev                  # starts Next.js at http://localhost:3000
 | Variable | Used by |
 |---|---|
 | `OPENAI_API_KEY` | Embeddings + completions |
+| `OPENAI_CHAT_MODEL` | Chat completion model (optional, default: `gpt-4o-mini`) |
 | `PINECONE_API_KEY` | Vector store reads/writes |
 | `PINECONE_INDEX` | Target Pinecone index name |
 | `PINECONE_NAMESPACE` | Namespace within the index |

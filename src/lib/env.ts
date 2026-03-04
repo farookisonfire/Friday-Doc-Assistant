@@ -16,6 +16,7 @@ export const env = {
   LANGSMITH_API_KEY: () => requiredEnv("LANGSMITH_API_KEY"),
   DOCS_BASE_URL: () => requiredEnv("DOCS_BASE_URL"),
   OPENAI_EMBEDDING_MODEL: () => optionalEnv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small"),
+  OPENAI_CHAT_MODEL: () => optionalEnv("OPENAI_CHAT_MODEL", "gpt-4o-mini"),
   EMBED_BATCH_SIZE: () => parseInt(optionalEnv("EMBED_BATCH_SIZE", "100"), 10),
   EMBED_CONCURRENCY: () => parseInt(optionalEnv("EMBED_CONCURRENCY", "2"), 10),
 };
