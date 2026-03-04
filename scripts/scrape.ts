@@ -72,6 +72,7 @@ function sleep(ms: number) {
 
 async function main() {
   const baseUrl = env.DOCS_BASE_URL();
+  if (!baseUrl) throw new Error("DOCS_BASE_URL is required to run scrape");
   console.log(`[scrape] Starting from ${baseUrl}`);
 
   const { html: indexHtml } = await fetchHtml(baseUrl);

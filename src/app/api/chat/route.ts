@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { runRag } from "@/lib/runRag";
 
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   let body: Record<string, unknown>;
 
