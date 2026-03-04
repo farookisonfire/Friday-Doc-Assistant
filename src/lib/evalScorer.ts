@@ -27,3 +27,13 @@ export function scoreRefusalCorrectness(
   if (shouldRefuse === undefined) return NaN;
   return isRefusal === shouldRefuse ? 1 : 0;
 }
+
+export function scoreKeywordCoverage(
+  answer: string,
+  expectedKeywords: string[] | undefined
+): number {
+  if (!expectedKeywords?.length) return NaN;
+  const lower = answer.toLowerCase();
+  const hits = expectedKeywords.filter((kw) => lower.includes(kw.toLowerCase())).length;
+  return hits / expectedKeywords.length;
+}

@@ -3,126 +3,147 @@
     "id": "quickstart-install",
     "question": "How do I install Friday?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/quickstart"],
+    "expectedKeywords": ["brew install", "HeadstartAI/taps/friday"],
     "shouldRefuse": false
   },
   {
     "id": "quickstart-requirements",
     "question": "What are the system requirements to run Friday?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/quickstart"],
+    "expectedKeywords": ["Apple Silicon", "Homebrew", "8 GB"],
     "shouldRefuse": false
   },
   {
     "id": "quickstart-github-auth",
     "question": "How do I authenticate with GitHub CLI before using Friday?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/quickstart"],
+    "expectedKeywords": ["gh auth login", "gh auth status"],
     "shouldRefuse": false
   },
   {
     "id": "quickstart-keyboard-shortcuts",
     "question": "What keyboard shortcuts does Friday support?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/quickstart"],
+    "expectedKeywords": ["Ctrl+J", "Ctrl+L", "Shift+Enter"],
     "shouldRefuse": false
   },
   {
     "id": "autostart-prompt-flag",
     "question": "How do I launch Friday with a task that runs immediately on startup?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/autostart-mode"],
+    "expectedKeywords": ["--prompt", "10x"],
     "shouldRefuse": false
   },
   {
     "id": "autostart-one-shot",
     "question": "How do I make Friday exit automatically after completing a task?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/autostart-mode"],
+    "expectedKeywords": ["--one-shot", "--prompt"],
     "shouldRefuse": false
   },
   {
     "id": "checkpoints-overview",
     "question": "What are checkpoints in Friday and how are they created?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/checkpoints"],
+    "expectedKeywords": ["/load-checkpoint", "per branch"],
     "shouldRefuse": false
   },
   {
     "id": "checkpoints-manual-save",
     "question": "How do I manually save a checkpoint in Friday?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/checkpoints"],
+    "expectedKeywords": ["/save-checkpoint"],
     "shouldRefuse": false
   },
   {
     "id": "cowboy-mode-overview",
     "question": "What is cowboy mode and when does Friday enable it automatically?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/cowboy-mode"],
+    "expectedKeywords": ["--cowboy", "git repository"],
     "shouldRefuse": false
   },
   {
     "id": "file-support-types",
     "question": "What file types can I share with Friday?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/file-support"],
+    "expectedKeywords": ["JPG", "PNG", "PDF", "WebP"],
     "shouldRefuse": false
   },
   {
     "id": "message-queue-overview",
     "question": "How does the message queue work in Friday?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/message-queue"],
+    "expectedKeywords": ["/queue", "FIFO"],
     "shouldRefuse": false
   },
   {
     "id": "approval-mode-levels",
     "question": "What are the different approval mode levels in Friday?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/approval-mode"],
+    "expectedKeywords": ["2x", "5x", "10x"],
     "shouldRefuse": false
   },
   {
     "id": "approval-mode-persistent",
     "question": "How do I make my approval mode setting persist across Friday sessions?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/approval-mode"],
+    "expectedKeywords": ["/settings", "persist"],
     "shouldRefuse": false
   },
   {
     "id": "custom-commands-create",
     "question": "How do I create a custom slash command in Friday?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/custom-commands"],
+    "expectedKeywords": ["/create-command", ".claude/commands"],
     "shouldRefuse": false
   },
   {
     "id": "diff-command",
     "question": "What does the /diff command do in Friday?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/diff"],
+    "expectedKeywords": ["/diff", "uncommitted", "staged"],
     "shouldRefuse": false
   },
   {
     "id": "pr-stack-overview",
     "question": "What is the PR stack feature and how do I use it?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/pr-stack"],
+    "expectedKeywords": ["/pr-stack", "stacked"],
     "shouldRefuse": false
   },
   {
     "id": "chime-enable",
     "question": "How do I enable the conversation chime notification in Friday?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/chime"],
+    "expectedKeywords": ["/settings", "Glass", "Ping"],
     "shouldRefuse": false
   },
   {
     "id": "skills-overview",
     "question": "What are skills in Friday and how are they different from custom commands?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/skills"],
+    "expectedKeywords": ["SKILL.md", "/create-skill"],
     "shouldRefuse": false
   },
   {
     "id": "subagents-overview",
     "question": "What are subagents in Friday and how do I create a custom one?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/subagents"],
+    "expectedKeywords": ["/create-agent", "AGENT.md"],
     "shouldRefuse": false
   },
   {
     "id": "working-style-modes",
     "question": "What is the difference between Collaborative and Autonomous working style in Friday?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/working-style"],
+    "expectedKeywords": ["Collaborative", "Autonomous"],
     "shouldRefuse": false
   },
   {
     "id": "release-notes-update",
     "question": "How do I update Friday to the latest version?",
     "expectedUrls": ["https://www.codewithfriday.com/docs/release-notes"],
+    "expectedKeywords": ["brew update", "brew upgrade"],
     "shouldRefuse": false
   },
   {

@@ -8,6 +8,7 @@ import {
   scoreGrounding,
   scoreCitationPrecision,
   scoreRefusalCorrectness,
+  scoreKeywordCoverage,
 } from "../src/lib/evalScorer";
 import { evaluate } from "langsmith/evaluation";
 import type { Example } from "langsmith/schemas";
@@ -16,6 +17,7 @@ interface EvalCase {
   id: string;
   question: string;
   expectedUrls: string[];
+  expectedKeywords?: string[];
   shouldRefuse: boolean;
 }
 
@@ -36,7 +38,7 @@ async function main() {
     id: randomUUID(),
     created_at: CREATED_AT,
     inputs: { question: c.question, topK: DEFAULT_TOP_K, caseId: c.id },
-    outputs: { expectedUrls: c.expectedUrls, shouldRefuse: c.shouldRefuse },
+    outputs: { expectedUrls: c.expectedUrls, expectedKeywords: c.expectedKeywords, shouldRefuse: c.shouldRefuse },
     runs: [],
     dataset_id: "",
   }));
@@ -78,6 +80,13 @@ async function main() {
             referenceOutputs?.shouldRefuse as boolean | undefined
           ),
         }),
+        ({ outputs, referenceOutputs }: { outputs: Record<string, unknown>; referenceOutputs?: Record<string, unknown> }) => ({
+          key: "keyword_coverage",
+          score: scoreKeywordCoverage(
+            toRagResult(outputs).answer ?? "",
+            referenceOutputs?.expectedKeywords as string[] | undefined
+          ),
+        }),
       ],
     }
   );
@@ -87,10 +96,12 @@ async function main() {
   let totalGrounding = 0;
   let totalPrecision = 0;
   let totalRefusal = 0;
+  let totalKeyword = 0;
   let countRecall = 0;
   let countGrounding = 0;
   let countPrecision = 0;
   let countRefusal = 0;
+  let countKeyword = 0;
 
   for await (const row of experimentResults) {
     const scores: Record<string, number> = {};
@@ -102,6 +113,7 @@ async function main() {
     const grounding = scores["grounding"] ?? NaN;
     const precision = scores["citation_precision"] ?? NaN;
     const refusal = scores["refusal_correctness"] ?? NaN;
+    const keyword = scores["keyword_coverage"] ?? NaN;
 
     rows.push({
       case: String(row.example.inputs.caseId ?? row.example.inputs.question).slice(0, 40),
@@ -109,6 +121,7 @@ async function main() {
       grounding: isNaN(grounding) ? "N/A" : grounding.toFixed(2),
       citation_precision: isNaN(precision) ? "N/A" : precision.toFixed(2),
       refusal_correctness: isNaN(refusal) ? "N/A" : refusal.toFixed(2),
+      keyword_coverage: isNaN(keyword) ? "N/A" : keyword.toFixed(2),
     });
 
     if (!isNaN(recall)) {
@@ -127,6 +140,10 @@ async function main() {
       totalRefusal += refusal;
       countRefusal++;
     }
+    if (!isNaN(keyword)) {
+      totalKeyword += keyword;
+      countKeyword++;
+    }
   }
 
   console.table(rows);
@@ -136,6 +153,7 @@ async function main() {
   console.log(`  grounding:           ${countGrounding ? (totalGrounding / countGrounding).toFixed(3) : "N/A"} (n=${countGrounding})`);
   console.log(`  citation_precision:  ${countPrecision ? (totalPrecision / countPrecision).toFixed(3) : "N/A"} (n=${countPrecision})`);
   console.log(`  refusal_correctness: ${countRefusal ? (totalRefusal / countRefusal).toFixed(3) : "N/A"} (n=${countRefusal})`);
+  console.log(`  keyword_coverage:    ${countKeyword ? (totalKeyword / countKeyword).toFixed(3) : "N/A"} (n=${countKeyword})`);
   console.log(`\n  Experiment: ${experimentResults.experimentName}`);
 }
 
