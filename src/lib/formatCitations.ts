@@ -13,13 +13,18 @@ export interface FormattedCitations {
 }
 
 const SNIPPET_LENGTH = 240;
+const SRC_TAG_RE = / ?\[src:[^\]]+\]/g;
 
 export function formatCitations(
   answer: string,
   analysis: CitationAnalysis
 ): FormattedCitations {
-  if (analysis.isRefusal || analysis.cited.length === 0) {
+  if (analysis.isRefusal) {
     return { answer, sources: [] };
+  }
+
+  if (analysis.cited.length === 0) {
+    return { answer: answer.replace(SRC_TAG_RE, ""), sources: [] };
   }
 
   let formattedAnswer = answer;
@@ -36,7 +41,7 @@ export function formatCitations(
     });
   });
 
-  formattedAnswer = formattedAnswer.replace(/ ?\[src:[^\]]+\]/g, "");
+  formattedAnswer = formattedAnswer.replace(SRC_TAG_RE, "");
 
   return { answer: formattedAnswer, sources };
 }

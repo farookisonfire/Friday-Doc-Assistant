@@ -25,10 +25,17 @@ describe("formatCitations", () => {
     expect(result.sources).toEqual([]);
   });
 
-  it("returns answer unchanged and empty sources when no chunks were cited", () => {
+  it("strips src tags and returns empty sources when no chunks were cited", () => {
     const analysis: CitationAnalysis = { isRefusal: false, cited: [], hallucinated: [] };
     const result = formatCitations("Some answer with no citations.", analysis);
     expect(result.answer).toBe("Some answer with no citations.");
+    expect(result.sources).toEqual([]);
+  });
+
+  it("strips hallucinated tags when cited is empty", () => {
+    const analysis: CitationAnalysis = { isRefusal: false, cited: [], hallucinated: ["ghost"] };
+    const result = formatCitations("Some answer [src:ghost].", analysis);
+    expect(result.answer).toBe("Some answer.");
     expect(result.sources).toEqual([]);
   });
 
