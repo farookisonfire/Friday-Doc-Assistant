@@ -1,6 +1,5 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { randomUUID } from "node:crypto";
 import { env } from "../src/lib/env";
 import { runRag, type RunRagResult } from "../src/lib/runRag";
 import {
@@ -11,7 +10,7 @@ import {
   scoreKeywordCoverage,
 } from "../src/lib/evalScorer";
 import { evaluate } from "langsmith/evaluation";
-import type { Example } from "langsmith/schemas";
+import { Client } from "langsmith";
 
 interface EvalCase {
   id: string;
@@ -22,7 +21,7 @@ interface EvalCase {
 }
 
 const DEFAULT_TOP_K = 5;
-const CREATED_AT = new Date().toISOString();
+const DATASET_NAME = "friday-docs-eval";
 
 function toRagResult(outputs: Record<string, unknown>): RunRagResult {
   return outputs as unknown as RunRagResult;
@@ -38,21 +37,27 @@ async function main() {
   const casesPath = path.join(process.cwd(), "data", "eval-cases.json");
   const cases: EvalCase[] = JSON.parse(await fs.readFile(casesPath, "utf-8"));
 
-  const data: Example[] = cases.map((c) => ({
-    id: randomUUID(),
-    created_at: CREATED_AT,
-    inputs: { question: c.question, topK: DEFAULT_TOP_K, caseId: c.id },
-    outputs: { expectedUrls: c.expectedUrls, expectedKeywords: c.expectedKeywords, shouldRefuse: c.shouldRefuse },
-    runs: [],
-    dataset_id: "",
-  }));
+  const client = new Client();
+
+  if (await client.hasDataset({ datasetName: DATASET_NAME })) {
+    await client.deleteDataset({ datasetName: DATASET_NAME });
+  }
+  await client.createDataset(DATASET_NAME);
+  await client.createExamples(
+    cases.map((c) => ({
+      inputs: { question: c.question, topK: DEFAULT_TOP_K },
+      metadata: { caseId: c.id },
+      outputs: { expectedUrls: c.expectedUrls, expectedKeywords: c.expectedKeywords, shouldRefuse: c.shouldRefuse },
+      dataset_name: DATASET_NAME,
+    }))
+  );
 
   const experimentResults = await evaluate(
     async (inputs: { question: string; topK: number }): Promise<RunRagResult> => {
       return runRag(inputs.question, inputs.topK);
     },
     {
-      data,
+      data: DATASET_NAME,
       experimentPrefix: "friday-docs-rag",
       maxConcurrency: 2,
       evaluators: [
@@ -107,7 +112,7 @@ async function main() {
   let countRefusal = 0;
   let countKeyword = 0;
 
-  for await (const row of experimentResults) {
+  for (const row of experimentResults.results) {
     const scores: Record<string, number> = {};
     for (const r of row.evaluationResults.results) {
       if (r.score != null) scores[r.key] = r.score as number;
@@ -120,7 +125,7 @@ async function main() {
     const keyword = scores["keyword_coverage"] ?? NaN;
 
     rows.push({
-      case: String(row.example.inputs.caseId ?? row.example.inputs.question).slice(0, 40),
+      case: String(row.example.metadata?.caseId ?? row.example.inputs.question).slice(0, 40),
       retrieval_recall: isNaN(recall) ? "N/A" : recall.toFixed(2),
       grounding: isNaN(grounding) ? "N/A" : grounding.toFixed(2),
       citation_precision: isNaN(precision) ? "N/A" : precision.toFixed(2),
