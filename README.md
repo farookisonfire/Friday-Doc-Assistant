@@ -30,7 +30,7 @@ Docs site → scrape → chunk → embed → Pinecone
 ## Architecture
 
 ```mermaid
-%%{init: {'theme': 'dark'}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'lineColor': '#94a3b8', 'clusterBkg': '#0f172a', 'clusterBorder': '#334155', 'titleColor': '#94a3b8', 'edgeLabelBackground': '#1e293b', 'background': '#0f172a'}}}%%
 flowchart TD
 
     classDef ingestion fill:#0c4a6e,stroke:#0ea5e9,color:#e0f2fe,stroke-width:2px
