@@ -29,6 +29,41 @@ Docs site → scrape → chunk → embed → Pinecone
 
 ## Architecture
 
+```mermaid
+%%{init: {'theme': 'dark'}}%%
+flowchart TD
+
+    classDef ingestion fill:#0c4a6e,stroke:#0ea5e9,color:#e0f2fe,stroke-width:2px
+    classDef query fill:#2e1065,stroke:#8b5cf6,color:#ede9fe,stroke-width:2px
+    classDef openai fill:#451a03,stroke:#f59e0b,color:#fef3c7,stroke-width:2px
+    classDef pinecone fill:#064e3b,stroke:#10b981,color:#d1fae5,stroke-width:2px
+    classDef decision fill:#1c1917,stroke:#78716c,color:#f5f5f4,stroke-width:2px
+    classDef refusal fill:#450a0a,stroke:#ef4444,color:#fee2e2,stroke-width:2px
+
+    PC[(Pinecone)]:::pinecone
+
+    subgraph ING["  INGESTION  "]
+        direction LR
+        A[Docs Site]:::ingestion --> B[Scraper]:::ingestion --> C[Chunker]:::ingestion --> D[Embedder]:::ingestion
+        D --> E{Cache?}:::decision
+        E -->|miss| F[OpenAI Embed]:::openai --> G[Upsert]:::ingestion
+        E -->|hit| G
+    end
+
+    subgraph QRY["  QUERY  "]
+        direction LR
+        H[Chat UI]:::query -->|POST /api/chat| I[API Route]:::query --> J[Retriever]:::query
+        L[Prompt Builder]:::query -->|no chunks| M[Refusal]:::refusal --> I
+        L -->|chunks found| N[OpenAI Chat]:::openai --> O[Citation Analysis]:::query --> I
+        I --> H
+    end
+
+    G --> PC
+    J -->|query| PC
+    PC -->|results| J
+    J --> L
+```
+
 ### 1. Scraper
 
 `scripts/scrape.ts` crawls the docs site starting from `DOCS_BASE_URL`. It uses Cheerio to parse HTML server-side — no headless browser required.
