@@ -43,11 +43,6 @@ describe("env", () => {
       expect(() => env.PINECONE_NAMESPACE()).toThrow("Missing required environment variable: PINECONE_NAMESPACE");
     });
 
-    it("throws when DOCS_BASE_URL is missing", () => {
-      delete process.env.DOCS_BASE_URL;
-      expect(() => env.DOCS_BASE_URL()).toThrow("Missing required environment variable: DOCS_BASE_URL");
-    });
-
     it("throws when LANGSMITH_API_KEY is missing", () => {
       delete process.env.LANGSMITH_API_KEY;
       expect(() => env.LANGSMITH_API_KEY()).toThrow("Missing required environment variable: LANGSMITH_API_KEY");
@@ -67,6 +62,16 @@ describe("env", () => {
   });
 
   describe("optional vars with defaults", () => {
+    it("returns empty string when DOCS_BASE_URL is not set", () => {
+      delete process.env.DOCS_BASE_URL;
+      expect(env.DOCS_BASE_URL()).toBe("");
+    });
+
+    it("returns value when DOCS_BASE_URL is set", () => {
+      process.env.DOCS_BASE_URL = "https://docs.example.com";
+      expect(env.DOCS_BASE_URL()).toBe("https://docs.example.com");
+    });
+
     it("returns default model when OPENAI_EMBEDDING_MODEL is not set", () => {
       delete process.env.OPENAI_EMBEDDING_MODEL;
       expect(env.OPENAI_EMBEDDING_MODEL()).toBe("text-embedding-3-small");
