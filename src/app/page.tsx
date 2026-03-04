@@ -1,12 +1,22 @@
+import ChatInterface from "@/components/ChatInterface";
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-950">
-      <h1 className="text-3xl font-semibold text-zinc-900 dark:text-zinc-50">
-        Friday Doc Assistant
-      </h1>
-      <p className="mt-3 text-zinc-500 dark:text-zinc-400">
-        Chat UI coming in Phase 3.
-      </p>
+    <main className="min-h-screen bg-zinc-950 text-zinc-100">
+      <div className="mx-auto max-w-3xl px-6 py-16">
+        <header className="mb-12">
+          <p className="text-xs font-medium uppercase tracking-widest text-zinc-500">
+            Friday
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold text-zinc-100">
+            Doc Assistant
+          </h1>
+          <p className="mt-2 text-sm text-zinc-500">
+            Ask anything about the documentation.
+          </p>
+        </header>
+        <ChatInterface />
+      </div>
     </main>
   );
 }
