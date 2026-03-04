@@ -35,7 +35,7 @@ function setupHappyPathMocks(overrides: { isRefusal?: boolean } = {}) {
   const mockFormatted = { answer: "final answer [1]", sources: [{ index: 1, title: "T", url: "u", snippet: "s" }] };
 
   vi.mocked(env.OPENAI_CHAT_MODEL).mockReturnValue("gpt-test");
-  vi.mocked(querySimilar).mockResolvedValue(mockChunks);
+  vi.mocked(querySimilar).mockResolvedValue(mockChunks as never);
   vi.mocked(buildPrompt).mockReturnValue({ system: "sys", user: "usr" });
 
   const mockCreate = vi.fn().mockResolvedValue({
@@ -45,7 +45,7 @@ function setupHappyPathMocks(overrides: { isRefusal?: boolean } = {}) {
     chat: { completions: { create: mockCreate } },
   } as never);
 
-  vi.mocked(analyzeCitations).mockResolvedValue(mockAnalysis);
+  vi.mocked(analyzeCitations).mockResolvedValue(mockAnalysis as never);
   vi.mocked(formatCitations).mockReturnValue(mockFormatted);
 
   return { mockChunks, mockAnalysis, mockFormatted, mockCreate };
@@ -54,7 +54,7 @@ function setupHappyPathMocks(overrides: { isRefusal?: boolean } = {}) {
 describe("POST /api/chat", () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.mocked(getCurrentRunTree).mockReturnValue({ trace_id: "test-trace-id" });
+    vi.mocked(getCurrentRunTree).mockReturnValue({ trace_id: "test-trace-id" } as never);
   });
 
   it("returns 400 when question is missing", async () => {
@@ -135,7 +135,7 @@ describe("POST /api/chat", () => {
     const mockFormatted = { answer: "I cannot answer from the provided documentation.", sources: [] };
 
     vi.mocked(env.OPENAI_CHAT_MODEL).mockReturnValue("gpt-test");
-    vi.mocked(querySimilar).mockResolvedValue(mockChunks);
+    vi.mocked(querySimilar).mockResolvedValue(mockChunks as never);
     vi.mocked(buildPrompt).mockReturnValue({ system: "sys", user: "usr" });
 
     const mockCreate = vi.fn().mockResolvedValue({

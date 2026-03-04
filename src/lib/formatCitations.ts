@@ -1,4 +1,4 @@
-import type { CitationAnalysis, RetrievedChunk } from "./types";
+import type { CitationAnalysis } from "./types";
 
 export interface FormattedSource {
   index: number;
