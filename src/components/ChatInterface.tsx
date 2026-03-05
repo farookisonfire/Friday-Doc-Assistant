@@ -13,6 +13,7 @@ export default function ChatInterface() {
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [copied, setCopied] = useState(false);
+  const [debugOpen, setDebugOpen] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   async function submit() {
@@ -67,12 +68,17 @@ export default function ChatInterface() {
     setStatus("idle");
     setErrorMessage("");
     setCopied(false);
+    setDebugOpen(false);
   }
 
   async function copyTraceId(id: string) {
-    await navigator.clipboard.writeText(id);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(id);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard write failed
+    }
   }
 
   return (
@@ -154,14 +160,37 @@ export default function ChatInterface() {
             </div>
           )}
 
-          <div className="flex items-center gap-3 border-t border-zinc-900 pt-4">
-            <span className="font-mono text-xs text-zinc-700">{response.traceId}</span>
+          <div className="border-t border-zinc-900 pt-4">
             <button
-              onClick={() => copyTraceId(response.traceId)}
-              className="text-xs text-zinc-600 transition hover:text-zinc-400"
+              onClick={() => setDebugOpen((o) => !o)}
+              className="flex items-center gap-1.5 text-xs text-zinc-600 transition hover:text-zinc-400"
             >
-              {copied ? "Copied" : "Copy trace ID"}
+              <svg
+                className={`h-3 w-3 transition-transform ${debugOpen ? "rotate-90" : ""}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+              Debug
             </button>
+            {debugOpen && (
+              <div className="mt-3 flex items-center gap-3">
+                <span className="font-mono text-xs text-zinc-700">
+                  {response.traceId || "—"}
+                </span>
+                {response.traceId && (
+                  <button
+                    onClick={() => copyTraceId(response.traceId)}
+                    className="text-xs text-zinc-600 transition hover:text-zinc-400"
+                  >
+                    {copied ? "Copied" : "Copy trace ID"}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
