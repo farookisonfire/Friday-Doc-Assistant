@@ -1,70 +1,22 @@
 # Friday Doc Assistant
 
-A grounded documentation assistant built over [Friday's public docs](https://www.codewithfriday.com/docs). Ask a question, get an answer backed by real sources — every factual claim is cited with a link to the relevant doc page.
+A documentation assistant built over [Friday's public docs](https://www.codewithfriday.com/docs). Ask a question, get an answer backed by real sources — every factual claim is cited with a link to the relevant doc page.
 
-For full project spec and architecture decisions, see [`SPEC.md`](./SPEC.md).
-
----
-
-## How it works
-
-```
-Docs site → scrape → chunk → embed → Pinecone
-                                          ↓
-                          User question → embed → retrieve top-K chunks
-                                                        ↓
-                                              Assemble prompt → OpenAI
-                                                        ↓
-                                              Answer with citations → UI
-```
-
-### Layers
-
-| Layer | Location | Description |
-|---|---|---|
-| **Ingestion** | `scripts/` | Scrape, chunk, embed, and upsert docs to Pinecone |
-| **Shared utilities** | `src/lib/` | Env validation, OpenAI client, Pinecone client, embeddings, shared types |
+![Docs-Assistant-In-Action](./public/images/friday-docs-assistant-screenshot.png)
 
 ---
 
 ## Architecture
 
-```mermaid
-%%{init: {'theme': 'base', 'themeVariables': {'lineColor': '#94a3b8', 'clusterBkg': '#0f172a', 'clusterBorder': '#334155', 'titleColor': '#94a3b8', 'edgeLabelBackground': '#1e293b', 'background': '#0f172a'}}}%%
-flowchart TD
+### Document Ingestion
+![Ingestion-Architecture](./public/images/friday-docs-assistant-ingestion-diagram.png)
 
-    classDef ingestion fill:#0c4a6e,stroke:#0ea5e9,color:#e0f2fe,stroke-width:2px
-    classDef query fill:#2e1065,stroke:#8b5cf6,color:#ede9fe,stroke-width:2px
-    classDef openai fill:#451a03,stroke:#f59e0b,color:#fef3c7,stroke-width:2px
-    classDef pinecone fill:#064e3b,stroke:#10b981,color:#d1fae5,stroke-width:2px
-    classDef decision fill:#1c1917,stroke:#78716c,color:#f5f5f4,stroke-width:2px
-    classDef refusal fill:#450a0a,stroke:#ef4444,color:#fee2e2,stroke-width:2px
+### Query Handling
+![Query-Architecture](./public/images/friday-docs-assistant-query-diagram.png)
 
-    PC[(Pinecone)]:::pinecone
+### Components
 
-    subgraph ING["  INGESTION  "]
-        direction LR
-        A[Docs Site]:::ingestion --> B[Scraper]:::ingestion --> C[Chunker]:::ingestion --> D[Embedder]:::ingestion
-        D --> E{Cache?}:::decision
-        E -->|miss| F[OpenAI Embed]:::openai --> G[Upsert]:::ingestion
-        E -->|hit| G
-    end
-
-    subgraph QRY["  QUERY  "]
-        direction LR
-        H[Chat UI]:::query -->|POST /api/chat| I[API Route]:::query --> J[Retriever]:::query
-        L[Prompt Builder]:::query -->|no chunks| M[Refusal]:::refusal --> I
-        L -->|chunks found| N[OpenAI Chat]:::openai --> O[Citation Analysis]:::query --> I
-        I --> H
-    end
-
-    G --> PC
-    J -->|query| PC
-    PC -->|results| J
-    J --> L
-```
-
-### 1. Scraper
+#### 1. Scraper
 
 `scripts/scrape.ts` crawls the docs site starting from `DOCS_BASE_URL`. It uses Cheerio to parse HTML server-side — no headless browser required.
 
@@ -83,7 +35,7 @@ interface ScrapedPage {
 
 ---
 
-### 2. Chunker
+#### 2. Chunker
 
 `src/lib/ingest-utils.ts` converts scraped pages into flat, retrievable chunks. Each section becomes at least one chunk. Sections longer than ~600 tokens are split further using a sliding window with ~80 tokens of overlap between adjacent chunks, preserving context across boundaries.
 
@@ -119,7 +71,7 @@ Example chunk:
 
 ---
 
-### 3. Embedder
+#### 3. Embedder
 
 `src/lib/embeddings.ts` converts chunks into vectors using OpenAI's `text-embedding-3-small` model. The text sent to the API is a concatenation of the chunk's title, headings, and body text:
 
@@ -148,7 +100,7 @@ The embedder also handles rate limits and transient errors with exponential back
 
 ---
 
-### 4. Upsert
+#### 4. Upsert
 
 The upsert step reads `data/embedded_chunks.json` and writes each vector to Pinecone along with its full metadata payload. The metadata stored alongside each vector mirrors the `EmbeddedChunk` fields (minus the raw `embedding` vector) — `text`, `url`, `title`, `headings`, `chunk_index`, `content_hash`, `created_at`, and `embedding_model` — so the retriever can reconstruct a complete `RetrievedChunk` from Pinecone's response without a secondary lookup.
 
@@ -156,7 +108,7 @@ Because chunk IDs are deterministic, re-running the upsert with the same content
 
 ---
 
-### 5. Retriever
+#### 5. Retriever
 
 `src/lib/retriever.ts` handles query-time retrieval. It embeds the user's question using the same `text-embedding-3-small` model, then queries Pinecone for the `topK` most similar vectors:
 
@@ -173,7 +125,7 @@ The retriever is wrapped with LangSmith's `traceable` so every retrieval call is
 
 ---
 
-### 6. Prompt
+#### 6. Prompt
 
 `src/lib/prompt.ts` assembles the messages sent to the chat model.
 
@@ -207,7 +159,7 @@ If no chunks were retrieved, the documentation block is replaced with `(no docum
 
 ---
 
-### 7. API Route
+#### 7. API Route
 
 `src/app/api/chat/route.ts` is the single HTTP entry point for the chat feature.
 
@@ -244,7 +196,7 @@ When `isRefusal` is `true`, `sources` is always empty. The `traceId` maps to a L
 
 ---
 
-### 8. Chat UI
+#### 8. Chat UI
 
 `src/components/ChatInterface.tsx` is a React client component that provides the chat interface.
 
@@ -259,7 +211,7 @@ Once a response arrives, the UI renders:
 
 ---
 
-### 9. Evaluation
+#### 9. Evaluation
 
 `scripts/eval.ts` runs a structured evaluation of the full RAG pipeline against a set of hand-authored test cases.
 
