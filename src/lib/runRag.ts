@@ -37,7 +37,7 @@ export const runRag = traceable(
         answer: "",
         sources: [],
         isRefusal: false,
-        traceId: getCurrentRunTree().trace_id,
+        traceId: getCurrentRunTree()?.trace_id ?? "",
         chunks,
         analysis: { isRefusal: false, cited: [], hallucinated: [] },
       };
@@ -49,7 +49,7 @@ export const runRag = traceable(
       answer: formatted.answer,
       sources: formatted.sources,
       isRefusal: analysis.isRefusal,
-      traceId: getCurrentRunTree().trace_id,
+      traceId: getCurrentRunTree()?.trace_id ?? "",
       chunks,
       analysis,
     };
